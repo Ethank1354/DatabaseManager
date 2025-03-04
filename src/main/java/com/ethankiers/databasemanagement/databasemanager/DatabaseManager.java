@@ -2,12 +2,16 @@ package com.ethankiers.databasemanagement.databasemanager;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.*;
 
 public class DatabaseManager {
 
@@ -23,16 +27,77 @@ public class DatabaseManager {
         }
     }
 
-    public void populateFromExcel(String filePath) throws FileNotFoundException {
-        int batchSize = 20;
-        long startTime = System.currentTimeMillis();
+    public boolean importXlsxToDatabase(String filePath) {
+        try (FileInputStream fis = new FileInputStream(filePath);
+             XSSFWorkbook workbook = new XSSFWorkbook(fis)) {
 
-        FileInputStream inputStream = new FileInputStream(filePath);
+            // Iterate over all sheets in the workbook
+            for (int sheetIndex = 0; sheetIndex < workbook.getNumberOfSheets(); sheetIndex++) {
+                Sheet sheet = workbook.getSheetAt(sheetIndex);
+                String tableName = sheet.getSheetName(); // Use the sheet name as the table name
+                System.out.println("Creating table for sheet: " + tableName);
 
+                // Create a set to track columns and detect duplicates
+                Set<String> columnNames = new HashSet<>();
+                StringBuilder createTableQuery = new StringBuilder("CREATE TABLE IF NOT EXISTS " + tableName + " (");
+                Iterator<Row> rowIterator = sheet.iterator();
 
+                if (rowIterator.hasNext()) {
+                    Row headerRow = rowIterator.next();
+                    // List to store column names for insertion
+                    StringBuilder placeholders = new StringBuilder();
+                    for (int colIndex = 0; colIndex < headerRow.getPhysicalNumberOfCells(); colIndex++) {
+                        String columnName = headerRow.getCell(colIndex).getStringCellValue().trim(); // Trim spaces
 
+                        // Enclose column names with spaces in quotes
+                        if (columnName.contains(" ")) {
+                            columnName = "\"" + columnName + "\"";
+                        }
 
+                        // Check for duplicate columns by using a set
+                        if (columnNames.contains(columnName)) {
+                            // Modify the column name to make it unique (e.g., append "_duplicate")
+                            columnName = columnName + "_duplicate";
+                        }
 
+                        // Add the column name to the set and build the CREATE TABLE query
+                        columnNames.add(columnName);
+                        createTableQuery.append(columnName).append(" TEXT, ");
+                        // Prepare placeholders for INSERT INTO query
+                        placeholders.append("?, ");
+                    }
+                    createTableQuery.setLength(createTableQuery.length() - 2); // Remove the trailing comma and space
+                    createTableQuery.append(");");
+
+                    // Execute the CREATE TABLE query
+                    try (Statement stmt = conn.createStatement()) {
+                        stmt.execute(createTableQuery.toString());
+                    }
+
+                    // Prepare the INSERT query with correct number of placeholders
+                    String insertQuery = "INSERT INTO " + tableName + " VALUES(" + placeholders.toString().trim().replaceAll(", $", "") + ");";
+                    try (PreparedStatement pst = conn.prepareStatement(insertQuery)) {
+                        while (rowIterator.hasNext()) {
+                            Row row = rowIterator.next();
+                            for (int colIndex = 0; colIndex < row.getPhysicalNumberOfCells(); colIndex++) {
+                                Cell cell = row.getCell(colIndex);
+                                if (cell != null) {
+                                    pst.setString(colIndex + 1, cell.toString());
+                                } else {
+                                    pst.setNull(colIndex + 1, Types.NULL);
+                                }
+                            }
+                            pst.executeUpdate();
+                        }
+                    }
+                }
+            }
+
+            return true; // Return true if import was successful
+        } catch (IOException | SQLException e) {
+            System.out.println("Error importing data: " + e.getMessage());
+            return false; // Return false if an error occurred
+        }
     }
 
     public boolean addRowToTable(String tableName, String[] values) throws SQLException {
@@ -219,7 +284,7 @@ public class DatabaseManager {
     }
 
     public static void main(String args[]){
-        DatabaseManager db = new DatabaseManager("/home/user/data.sqlite");
-        //db.populateFromExcel();
+        DatabaseManager db = new DatabaseManager("/home/user/test.sqlite");
+        db.importXlsxToDatabase("/home/user/QubesIncoming/school/UMS_Data.xlsx");
     }
 }
