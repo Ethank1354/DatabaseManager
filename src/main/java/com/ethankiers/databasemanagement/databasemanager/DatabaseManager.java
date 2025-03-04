@@ -1,7 +1,6 @@
 package com.ethankiers.databasemanagement.databasemanager;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.*;
 import java.util.*;
@@ -11,13 +10,11 @@ import java.sql.SQLException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.*;
 
 import java.util.List;
 import java.util.Scanner;
-import java.util.Optional;
 
 public class DatabaseManager {
 
@@ -387,7 +384,7 @@ public class DatabaseManager {
         return tables;
     }
 
-    public static void main(String args[]) throws SQLException {
+    /*public static void main(String args[]) throws SQLException {
         DatabaseManager db = new DatabaseManager("/home/user/test.db");
 
         Scanner scanner = new Scanner(System.in);
@@ -454,12 +451,12 @@ public class DatabaseManager {
             System.out.println(value);
         }
 
-        System.out.println("Updating row");*/
+        System.out.println("Updating row");
         List<String> cols = new ArrayList<>();
         cols.add("Subject Code");
         cols.add("Subject Name");
 
-        /*List<String> vals = new ArrayList<>();
+        List<String> vals = new ArrayList<>();
         vals.add("Testing");
         vals.add("Tests");
 
@@ -467,7 +464,7 @@ public class DatabaseManager {
         values = db.getColumnValues("Subjects", "Subject Code");
         for (String value : values) {
             System.out.println(value);
-        }*/
+        }
 
 
         System.out.println("\nDeleting row");
@@ -477,5 +474,5 @@ public class DatabaseManager {
             System.out.println(value);
         }
 
-    }
+    }*/
 }
