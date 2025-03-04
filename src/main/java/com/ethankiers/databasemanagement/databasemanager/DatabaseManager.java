@@ -15,6 +15,10 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.*;
 
+import java.util.List;
+import java.util.Scanner;
+import java.util.Optional;
+
 public class DatabaseManager {
 
     private static final Logger log = LogManager.getLogger(DatabaseManager.class);
@@ -29,7 +33,7 @@ public class DatabaseManager {
             System.out.println("Connection failed: " + e.getMessage());
         }
     }
-
+    //working
     public boolean importXlsxToDatabase(String filePath) {
         try (FileInputStream fis = new FileInputStream(filePath);
              XSSFWorkbook workbook = new XSSFWorkbook(fis)) {
@@ -97,10 +101,13 @@ public class DatabaseManager {
         }
     }
 
-
+    //working
     public boolean addRowToTable(String tableName, String[] values) throws SQLException {
+        // Quote the table name if it contains spaces
+        String quotedTableName = tableName.contains(" ") ? "\"" + tableName + "\"" : tableName;
+
         // Build a parameterized SQL query
-        StringBuilder sql = new StringBuilder("INSERT INTO " + tableName + " VALUES(");
+        StringBuilder sql = new StringBuilder("INSERT INTO " + quotedTableName + " VALUES(");
 
         // Add placeholders for each value
         for (int i = 0; i < values.length; i++) {
@@ -126,25 +133,36 @@ public class DatabaseManager {
     }
 
 
-    public boolean updateRowInTable(String tableName, String columnName, String columnValue, String[] newValues) throws SQLException {
-        // Build the SET clause of the SQL query dynamically based on the number of columns
-        StringBuilder sql = new StringBuilder("UPDATE " + tableName + " SET ");
-        for (int i = 0; i < newValues.length; i++) {
-            sql.append("column" + (i + 1) + " = ?");
-            if (i < newValues.length - 1) {
+    //working
+    public boolean updateRowInTable(String tableName, String columnName, String columnValue, List<String> columnNames, List<String> newValues) throws SQLException {
+        // Quote table and column names if they contain spaces
+        String quotedTableName = tableName.contains(" ") ? "\"" + tableName + "\"" : tableName;
+        String quotedColumnName = columnName.contains(" ") ? "\"" + columnName + "\"" : columnName;
+
+        // Check if the number of column names matches the number of new values
+        if (columnNames.size() != newValues.size()) {
+            throw new SQLException("Column names and new values count must be the same.");
+        }
+
+        // Build the SET clause of the SQL query dynamically based on the column names list
+        StringBuilder sql = new StringBuilder("UPDATE " + quotedTableName + " SET ");
+        for (int i = 0; i < columnNames.size(); i++) {
+            String quotedColumn = columnNames.get(i).contains(" ") ? "\"" + columnNames.get(i) + "\"" : columnNames.get(i);
+            sql.append(quotedColumn + " = ?");
+            if (i < columnNames.size() - 1) {
                 sql.append(", ");
             }
         }
-        sql.append(" WHERE " + columnName + " = ?;");
+        sql.append(" WHERE " + quotedColumnName + " = ?;");
 
         // Prepare the statement and set the values
         try (PreparedStatement pst = conn.prepareStatement(sql.toString())) {
             // Set the new values for the row
-            for (int i = 0; i < newValues.length; i++) {
-                pst.setString(i + 1, newValues[i]);
+            for (int i = 0; i < newValues.size(); i++) {
+                pst.setString(i + 1, newValues.get(i));
             }
             // Set the condition for the row update
-            pst.setString(newValues.length + 1, columnValue);
+            pst.setString(columnNames.size() + 1, columnValue);
 
             int rowsAffected = pst.executeUpdate();
             return rowsAffected > 0; // Return true if at least one row was updated
@@ -154,8 +172,14 @@ public class DatabaseManager {
         }
     }
 
-    public String[] returnStringArray(String tableName, String columnName, String field) throws SQLException {
-        String sql = "SELECT * FROM " + tableName + " WHERE " + columnName + " = ?;";
+    //working
+    public String[] getRow(String tableName, String columnName, String field) throws SQLException {
+        // Quote table and column names if they contain spaces
+        String quotedTableName = tableName.contains(" ") ? "\"" + tableName + "\"" : tableName;
+        String quotedColumnName = columnName.contains(" ") ? "\"" + columnName + "\"" : columnName;
+
+        // SQL query to select the row based on the condition
+        String sql = "SELECT * FROM " + quotedTableName + " WHERE " + quotedColumnName + " = ?;";
 
         try (PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setString(1, field);
@@ -168,24 +192,33 @@ public class DatabaseManager {
 
             if (result.next()) {
                 for (int i = 1; i <= columnCount; i++) {
-                    rowData.add(result.getString(i));
+                    rowData.add(result.getString(i)); // Add each column's value
                 }
             }
 
-            return rowData.toArray(new String[0]); // Convert list to array
+            return rowData.toArray(new String[0]); // Convert list to array and return
         }
     }
 
+    //works but only for multiple columns, not singular ones
     public List<String[]> getFilteredValues(String tableName, String[] columns, String filterColumn, String filterValue) throws SQLException {
+        // Quote table and column names if they contain spaces
+        String quotedTableName = tableName.contains(" ") ? "\"" + tableName + "\"" : tableName;
+        String[] quotedColumns = new String[columns.length];
+        for (int i = 0; i < columns.length; i++) {
+            quotedColumns[i] = columns[i].contains(" ") ? "\"" + columns[i] + "\"" : columns[i];
+        }
+        String quotedFilterColumn = filterColumn.contains(" ") ? "\"" + filterColumn + "\"" : filterColumn;
+
         // Build the SELECT clause of the SQL query dynamically based on the columns array
         StringBuilder sql = new StringBuilder("SELECT ");
-        for (int i = 0; i < columns.length; i++) {
-            sql.append(columns[i]);
-            if (i < columns.length - 1) {
+        for (int i = 0; i < quotedColumns.length; i++) {
+            sql.append(quotedColumns[i]);
+            if (i < quotedColumns.length - 1) {
                 sql.append(", ");
             }
         }
-        sql.append(" FROM " + tableName + " WHERE " + filterColumn + " = ?;");
+        sql.append(" FROM " + quotedTableName + " WHERE " + quotedFilterColumn + " = ?;");
 
         List<String[]> results = new ArrayList<>();
 
@@ -196,9 +229,9 @@ public class DatabaseManager {
             // Execute the query and process the result set
             try (ResultSet resultSet = pst.executeQuery()) {
                 while (resultSet.next()) {
-                    String[] row = new String[columns.length];
-                    for (int i = 0; i < columns.length; i++) {
-                        row[i] = resultSet.getString(columns[i]);
+                    String[] row = new String[quotedColumns.length];
+                    for (int i = 0; i < quotedColumns.length; i++) {
+                        row[i] = resultSet.getString(quotedColumns[i]);
                     }
                     results.add(row); // Add the row to the results list
                 }
@@ -210,13 +243,49 @@ public class DatabaseManager {
         return results;
     }
 
-    public boolean deleteRowFromTable(String tableName, String filterColumn, String filterValue) throws SQLException {
-        String sql = "DELETE FROM " + tableName + " WHERE " + filterColumn + " = ?;";
+    //working
+    public List<String> getFilteredValuesSingleColumn(String tableName, String column, String filterColumn, String filterValue) throws SQLException {
+        // Quote table, column, and filter column names if they contain spaces
+        String quotedTableName = tableName.contains(" ") ? "\"" + tableName + "\"" : tableName;
+        String quotedColumn = column.contains(" ") ? "\"" + column + "\"" : column;
+        String quotedFilterColumn = filterColumn.contains(" ") ? "\"" + filterColumn + "\"" : filterColumn;
+
+        // SQL query to select a single column based on the filter column and value
+        String sql = "SELECT " + quotedColumn + " FROM " + quotedTableName + " WHERE " + quotedFilterColumn + " = ?;";
+
+        List<String> results = new ArrayList<>();
 
         try (PreparedStatement pst = conn.prepareStatement(sql)) {
             // Set the filter value in the query
             pst.setString(1, filterValue);
 
+            // Execute the query and process the result set
+            try (ResultSet resultSet = pst.executeQuery()) {
+                while (resultSet.next()) {
+                    // Use the unquoted column name for result retrieval
+                    results.add(resultSet.getString(column)); // Use the unquoted column name here
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error retrieving filtered values: " + e.getMessage());
+        }
+
+        return results;
+    }
+
+    public boolean deleteRowFromTable(String tableName, String filterColumn, String filterValue) throws SQLException {
+        // Quote table and column names if they contain spaces
+        String quotedTableName = tableName.contains(" ") ? "\"" + tableName + "\"" : tableName;
+        String quotedFilterColumn = filterColumn.contains(" ") ? "\"" + filterColumn + "\"" : filterColumn;
+
+        // Build the SQL query
+        String sql = "DELETE FROM " + quotedTableName + " WHERE " + quotedFilterColumn + " = ?;";
+
+        try (PreparedStatement pst = conn.prepareStatement(sql)) {
+            // Set the filter value in the query
+            pst.setString(1, filterValue);
+
+            // Execute the query and return if any row was affected
             int rowsAffected = pst.executeUpdate();
             return rowsAffected > 0; // Return true if a row was deleted
         } catch (SQLException e) {
@@ -225,25 +294,36 @@ public class DatabaseManager {
         }
     }
 
-    public boolean belongsToTable(String tableName, String field) throws SQLException {
-        String sql = "PRAGMA table_info(" + tableName + ")";
+    //working
+    public boolean belongsToTable(String tableName, String columnName, String field) throws SQLException {
+        // Quote table and column names to handle spaces
+        String quotedTableName = tableName.contains(" ") ? "\"" + tableName + "\"" : tableName;
+        String quotedColumnName = columnName.contains(" ") ? "\"" + columnName + "\"" : columnName;
+        String quotedField = field.contains(" ") ? "\"" + field + "\"" : field;
 
-        try (PreparedStatement pst = conn.prepareStatement(sql);
-             ResultSet result = pst.executeQuery()) {
+        // SQL query to check if the value exists in the specified column of the table
+        String sql = "SELECT 1 FROM " + quotedTableName + " WHERE " + quotedColumnName + " = ? LIMIT 1";
 
-            while (result.next()) {
-                String columnName = result.getString("name");
-                if (columnName.equalsIgnoreCase(field)) {
-                    return true; // Column exists
+        try (PreparedStatement pst = conn.prepareStatement(sql)) {
+            // Set the field value as the parameter
+            pst.setString(1, field);
+
+            // Execute the query and check if any result exists
+            try (ResultSet result = pst.executeQuery()) {
+                if (result.next()) {
+                    return true; // The value exists in the column
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Error checking table structure: " + e.getMessage());
+            System.out.println("Error checking table values: " + e.getMessage());
         }
 
-        return false; // Column does not exist
+        return false; // No matching value found in the column of the table
     }
 
+
+
+    //working
     public List<String> getTableHeaders(String tableName) throws SQLException {
         Statement st = conn.createStatement();
         List<String> headers = new ArrayList<>();
@@ -264,15 +344,27 @@ public class DatabaseManager {
         return headers;
     }
 
+    //working
     public List<String> getColumnValues(String tableName, String columnName) throws SQLException {
         List<String> values = new ArrayList<>();
-        String sql = "SELECT " + columnName + " FROM " + tableName;
+
+        // Quote column and table names if they contain spaces
+        String quotedTableName = tableName.contains(" ") ? "\"" + tableName + "\"" : tableName;
+        String quotedColumnName = columnName.contains(" ") ? "\"" + columnName + "\"" : columnName;
+
+        // Prepare the SQL query with quoted column and table names
+        String sql = "SELECT " + quotedColumnName + " FROM " + quotedTableName;
 
         try (PreparedStatement pst = conn.prepareStatement(sql);
              ResultSet result = pst.executeQuery()) {
 
             while (result.next()) {
-                values.add(result.getString(1)); // Get the first (and only) column value
+                String value = result.getString(1); // Get the first (and only) column value
+
+                // Add the value to the list only if it is not null or empty
+                if (value != null && !value.trim().isEmpty()) {
+                    values.add(value);
+                }
             }
         } catch (SQLException e) {
             System.out.println("Error retrieving column values: " + e.getMessage());
@@ -297,7 +389,18 @@ public class DatabaseManager {
 
     public static void main(String args[]) throws SQLException {
         DatabaseManager db = new DatabaseManager("/home/user/test.db");
-        db.importXlsxToDatabase("/home/user/QubesIncoming/school/UMS_Data.xlsx");
+
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Do you want to import the Excel file? (yes/no): ");
+        String response = scanner.nextLine().trim().toLowerCase();
+
+        if (response.equals("yes") || response.equals("y")) {
+            db.importXlsxToDatabase("/home/user/QubesIncoming/school/UMS_Data.xlsx");
+            System.out.println("Import successful.");
+        } else {
+            System.out.println("Import canceled.");
+        }
+
         List<String> tables = db.getTables();
 
         System.out.println("\nTables");
@@ -312,9 +415,67 @@ public class DatabaseManager {
             System.out.println(header);
         }
 
-        //db.importXlsxToDatabase("/home/user/QubesIncoming/school/UMS_Data.xlsx");
+        System.out.println("\nColumn Values");
+        List<String> values = db.getColumnValues(tables.get(0), headers.get(0));
+        for (String value : values) {
+            System.out.println(value);
+        }
 
-        //System.out.println("\nColumn Values");
-        //List<String> values = db.getColumnValues(tables.get(0), headers.get(0));
+        if(db.belongsToTable("Subjects", "Subject Code", "MATH001")) {
+            System.out.println("Belongs to Table");
+        }else{
+            System.out.println("Not Belongs to Table");
+        }
+
+        System.out.println("\nrow");
+        String[] row = db.getRow("Subjects", "Subject Code", "MATH001");
+        for (String value : row) {
+            System.out.println(value);
+        }
+
+        String[] columns = {"Name", "Degree"};
+        List<String[]> data = db.getFilteredValues("Faculties", columns, "Faculty ID", "F0001");
+
+        for (String[] dataRow : data) {
+            System.out.println(dataRow[0] + "\t" + dataRow[1]);
+        }
+
+        List<String> one = db.getFilteredValuesSingleColumn("Subjects", "Subject Name", "Subject Code", "MATH001");
+        for (String value : one) {
+            System.out.println(value);
+        }
+
+        /*String[] newVals = {"test4", "test2"};
+        db.addRowToTable("Subjects", newVals);
+
+        System.out.println("Row added");
+        values = db.getColumnValues("Subjects", "Subject Code");
+        for (String value : values) {
+            System.out.println(value);
+        }
+
+        System.out.println("Updating row");*/
+        List<String> cols = new ArrayList<>();
+        cols.add("Subject Code");
+        cols.add("Subject Name");
+
+        /*List<String> vals = new ArrayList<>();
+        vals.add("Testing");
+        vals.add("Tests");
+
+        db.updateRowInTable("Subjects", "Subject Code", "test4", cols, vals);
+        values = db.getColumnValues("Subjects", "Subject Code");
+        for (String value : values) {
+            System.out.println(value);
+        }*/
+
+
+        System.out.println("\nDeleting row");
+        db.deleteRowFromTable("Subjects", "Subject Code", "test1");
+        values = db.getColumnValues("Subjects", "Subject Code");
+        for (String value : values) {
+            System.out.println(value);
+        }
+
     }
 }
