@@ -1,52 +1,97 @@
-class to make accessing and reading from a database easier in other programs.
+# DatabaseManager
 
-To use:
-in intellij:
-press ctrl + alt + shift + s
-navigate to modules > dependencies
-click the +
-add from jar or directory
-select the jar file from releases
+DatabaseManager is a Java class designed to simplify accessing and interacting with SQLite databases in other programs. It provides convenient methods for importing data, querying, updating, and managing database records.
 
-Usage:
+## Installation
 
+### IntelliJ Setup
+1. Press `Ctrl + Alt + Shift + S` to open **Project Structure**.
+2. Navigate to **Modules > Dependencies**.
+3. Click the `+` button and select **Add from JAR or directory**.
+4. Choose the JAR file from the **Releases** section.
+
+## Usage
+
+### Import the Library
+```java
 import com.ethankiers.databasemanagement.databasemanager.DatabaseManager;
+```
 
-the constructor is looking for the path to the sqlite db file as a string. Absolute or relative should work.
+### Constructor
+The `DatabaseManager` constructor requires the path to the SQLite database file as a `String`. You can use either an absolute or relative path.
 
-Methods:
-boolean importXLSXToDatabase
-  takes the path of the excel file as a string, returns true if it worked and false if it didnt, it will also print the sql error if one occurs
+```java
+DatabaseManager dbManager = new DatabaseManager("path/to/database.db");
+```
 
-boolean addRowToTable
-  takes the table name as a String, and a string array of the values to be added. make sure there is a value for every column in the table
+## Available Methods
 
-boolean updateRowInTable
-  takes in the table name, filter column name and filter value as Strings and a List<String> of the new values, same warning as above method
+### Data Import
+```java
+boolean importXLSXToDatabase(String excelFilePath);
+```
+- Imports data from an Excel file into the database.
+- Returns `true` if successful, otherwise `false`.
+- Prints SQL errors if any occur.
+
+### Data Manipulation
+```java
+boolean addRowToTable(String tableName, String[] values);
+```
+- Adds a new row to the specified table.
+- Ensure that the number of values matches the number of columns.
+
+```java
+boolean updateRowInTable(String tableName, String filterColumn, String filterValue, List<String> newValues);
+```
+- Updates an existing row in the specified table.
+- `filterColumn` and `filterValue` determine which row to update.
+- `newValues` should contain the updated values for all columns.
+
+```java
+boolean deleteRowFromTable(String tableName, String filterColumn, String filterValue);
+```
+- Deletes a row from the specified table based on the filter condition.
+
+### Data Retrieval
+```java
+List<String> getRow(String tableName, String filterColumn, String filterValue);
+```
+- Retrieves a full row matching the filter condition.
+
+```java
+List<String> getFilteredValues(String tableName, String filterColumn, String filterValue, String[] columns);
+```
+- Retrieves specific column values from rows matching the filter condition.
+
+```java
+List<String> getTableHeaders(String tableName);
+```
+- Returns a list of column names for the specified table.
+
+```java
+List<String> getColumnValues(String tableName, String columnName);
+```
+- Returns all values from a specific column.
+
+```java
+List<String> getTables();
+```
+- Returns a list of all tables in the database.
+
+### Validation
+```java
+boolean belongsToTable(String tableName, String value);
+```
+- Checks if a specified value exists in the given table.
+- Returns `true` if found, otherwise `false`.
+
+## Dependencies
+DatabaseManager relies on the following libraries:
+- **JDBC SQLite Driver**
+- **Apache POI** (for Excel file handling)
+- **Apache POI OOXML**
+
+These dependencies are bundled in the release JAR, so no additional setup is needed if using the pre-built release.
 
 
-List<String> getRow 
-  takes table name, filter column and value as Strings
-  returns a List of the records associated with that value
-
-List<String> getFilteredValues
-  takes the table name, filter column and value as Strings and a String array of the columns to get data from
-  returns a list containing data from the specified columns. like the method above, but instead of returning the whole row, it returns only the data in the row from the specified columns
-
-boolean deleteRowFromTable
-  takes table name, filter column and value as String and deletes the corresponding row
-
-boolean belongsToTable
-  checks if a specified value belongs to a specified table,, returns true if so and false if not.
-
-List<String> getTableHeaders
-  takes the table name as a string and returns a list of the column names for that table
-
-List<String> getColumnValues
-  takes the table name and column as strings
-  returns all of the values in that column
-
-List<String> getTables
-  returns a list of the tables in the database
-
-depends on jdbc sqlite driver, apache poi aand apache poi ooxml, they are packaged in the release jar, so they don't need to be added separately if using that.
