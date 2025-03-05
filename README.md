@@ -1,5 +1,20 @@
 class to make accessing and reading from a database easier in other programs.
 
-Everything but the importing from excel works right now, i will make a jar and instructions for including it when everything is working.
+To use:
+in intellij:
+press ctrl + alt + shift + s
+navigate to modules > dependencies
+click the +
+add from jar or directory
+select the jar file from releases
 
-2025-03-04 excel import working, need to improve sql statements to handle spaces
+Usage:
+
+import com.ethankiers.databasemanagement.databasemanager.DatabaseManager;
+
+the constructor is looking for the path to the sqlite db file as a string. Absolute or relative should work.
+
+Methods:
+
+
+
