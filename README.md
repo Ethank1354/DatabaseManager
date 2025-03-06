@@ -5,14 +5,35 @@ DatabaseManager is a Java class designed to simplify accessing and interacting w
 ## Installation
 
 ### IntelliJ Setup
+### From Jar
 1. Press `Ctrl + Alt + Shift + S` to open **Project Structure**.
 2. Navigate to **Modules > Dependencies**.
 3. Click the `+` button and select **Add from JAR or directory**.
 4. Choose the JAR file from the **Releases** section.
 
+### In An Intellij JavaFX Project
+1. Download the .java file from releases
+2. Download the latest jdbc driver .jar from here: https://github.com/xerial/sqlite-jdbc/releases
+3. Move it to the lib folder in your project (Projectname/lib)
+4. Press `Ctrl + Alt + Shift + S` to open **Project Structure**.
+5. Navigate to **Librairies**
+6. Click the `+` button and select **JAVA**.
+7. Select the jdbc .jar file
+8. Follow the prompts and then click the `+` again
+9. Select **From Maven**
+10. Paste org.apache.poi:poi:5.4.0 in the box
+11. Select the `download to` checkbox and click ok
+12. Follow the prompts and then click the `+` again
+13. Select **From Maven**
+14. Paste org.apache.poi:poi-ooxml:5.4.0 in the box
+15. Select the `download to` checkbox and click ok
+16. Copy the .java file that you downloaded to the main package of your project.
+17. Fix the package name and follow Intellij's prompts to resolve the errors
+
 ## Usage
 
 ### Import the Library
+
 ```java
 import com.ethankiers.databasemanagement.databasemanager.DatabaseManager;
 ```
