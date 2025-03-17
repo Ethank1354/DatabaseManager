@@ -386,6 +386,44 @@ public class DatabaseManager {
         return resultList;
     }
 
+    public void createTable(String tableName, List<String> columns) throws SQLException {
+        if (columns == null || columns.isEmpty()) {
+            throw new IllegalArgumentException("Column list cannot be empty.");
+        }
+
+        // Quote the table name if it contains spaces
+        String quotedTableName = tableName.contains(" ") ? "\"" + tableName + "\"" : tableName;
+
+        // Build the column definitions string
+        StringBuilder columnDefinitions = new StringBuilder();
+        for (int i = 0; i < columns.size(); i++) {
+            String column = columns.get(i).replaceAll("\\s", ""); // Remove spaces from column names
+            columnDefinitions.append("\"").append(column).append("\" TEXT"); // Default type is TEXT
+            if (i < columns.size() - 1) {
+                columnDefinitions.append(", ");
+            }
+        }
+
+        // Construct the CREATE TABLE SQL query
+        String sql = "CREATE TABLE IF NOT EXISTS " + quotedTableName + " (" + columnDefinitions + ");";
+
+        // Execute the query
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute(sql);
+            System.out.println("Table '" + tableName + "' created successfully.");
+        } catch (SQLException e) {
+            System.out.println("Error creating table: " + e.getMessage());
+        }
+    }
+
+    /*public static void main(String[] args) throws SQLException {
+        DatabaseManager db = new DatabaseManager("/home/user/test.db");
+        List<String> columnNames = new ArrayList<>();
+        columnNames.add("id");
+        columnNames.add("location");
+        db.createTable("Photos", columnNames);
+    }*/
+
     /*public static void main(String args[]) throws SQLException {
         DatabaseManager db = new DatabaseManager("/home/user/test.db");
 
@@ -465,8 +503,8 @@ public class DatabaseManager {
 
 
         System.out.println("\nDeleting row");
-        db.deleteRowFromTable("Subjects", "Subject Code", "Testing");
-        values = db.getColumnValues("Subjects", "Subject Code");
+        db.deleteRowFromTable("Faculties", "Faculty ID", "F0001");
+        values = db.getColumnValues("Faculties", "Faculty ID");
         for (String value : values) {
             System.out.println(value);
         }
