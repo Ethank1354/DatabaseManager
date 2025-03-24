@@ -10,6 +10,11 @@ DatabaseManager is a Java class designed to simplify accessing and interacting w
 2. Navigate to **Modules > Dependencies**.
 3. Click the `+` button and select **Add from JAR or directory**.
 4. Choose the JAR file from the **Releases** section.
+5. Import the Library
+
+```java
+import com.ethankiers.databasemanagement.databasemanager.DatabaseManager;
+```
 
 ### In An Intellij JavaFX Project
 1. Download the .java file from releases
@@ -31,12 +36,6 @@ DatabaseManager is a Java class designed to simplify accessing and interacting w
 17. Fix the package name and follow Intellij's prompts to resolve the errors
 
 ## Usage
-
-### Import the Library
-
-```java
-import com.ethankiers.databasemanagement.databasemanager.DatabaseManager;
-```
 
 ### Constructor
 The `DatabaseManager` constructor requires the path to the SQLite database file as a `String`. You can use either an absolute or relative path.
