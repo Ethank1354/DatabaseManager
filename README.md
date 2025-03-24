@@ -99,6 +99,16 @@ List<String> getTables();
 ```
 - Returns a list of all tables in the database.
 
+```java
+List<String> getColumnValuesByFilter(String tableName, String columnToSelect, String filterColumn, String filterValue);
+```
+- Returns a list of the values in a column given the name and filter of another column
+
+```java
+void createTable(String tableName, String[] columns);
+```
+- Creates a new table with the specified name and columns
+
 ### Validation
 ```java
 boolean belongsToTable(String tableName, String value);
