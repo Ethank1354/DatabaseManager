@@ -73,6 +73,11 @@ boolean deleteRowFromTable(String tableName, String filterColumn, String filterV
 ```
 - Deletes a row from the specified table based on the filter condition.
 
+```java
+void createTable(String tableName, String[] columns);
+```
+- Creates a new table with the specified name and columns
+
 ### Data Retrieval
 ```java
 List<String> getRow(String tableName, String filterColumn, String filterValue);
@@ -103,11 +108,6 @@ List<String> getTables();
 List<String> getColumnValuesByFilter(String tableName, String columnToSelect, String filterColumn, String filterValue);
 ```
 - Returns a list of the values in a column given the name and filter of another column
-
-```java
-void createTable(String tableName, String[] columns);
-```
-- Creates a new table with the specified name and columns
 
 ### Validation
 ```java
