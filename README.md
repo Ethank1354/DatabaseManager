@@ -10,6 +10,11 @@ DatabaseManager is a Java class designed to simplify accessing and interacting w
 2. Navigate to **Modules > Dependencies**.
 3. Click the `+` button and select **Add from JAR or directory**.
 4. Choose the JAR file from the **Releases** section.
+5. Import the Library
+
+```java
+import com.ethankiers.databasemanagement.databasemanager.DatabaseManager;
+```
 
 ### In An Intellij JavaFX Project
 1. Download the .java file from releases
@@ -31,12 +36,6 @@ DatabaseManager is a Java class designed to simplify accessing and interacting w
 17. Fix the package name and follow Intellij's prompts to resolve the errors
 
 ## Usage
-
-### Import the Library
-
-```java
-import com.ethankiers.databasemanagement.databasemanager.DatabaseManager;
-```
 
 ### Constructor
 The `DatabaseManager` constructor requires the path to the SQLite database file as a `String`. You can use either an absolute or relative path.
@@ -74,6 +73,11 @@ boolean deleteRowFromTable(String tableName, String filterColumn, String filterV
 ```
 - Deletes a row from the specified table based on the filter condition.
 
+```java
+void createTable(String tableName, String[] columns);
+```
+- Creates a new table with the specified name and columns
+
 ### Data Retrieval
 ```java
 List<String> getRow(String tableName, String filterColumn, String filterValue);
@@ -99,6 +103,11 @@ List<String> getColumnValues(String tableName, String columnName);
 List<String> getTables();
 ```
 - Returns a list of all tables in the database.
+
+```java
+List<String> getColumnValuesByFilter(String tableName, String columnToSelect, String filterColumn, String filterValue);
+```
+- Returns a list of the values in a column given the name and filter of another column
 
 ### Validation
 ```java
