@@ -83,8 +83,16 @@ void createTable(String tableName, LinkedHashMap columns);
   - INTEGER
   - BLOB
 
+ ```java
+void addColumnToTable(String Table, LinkedHashMap columns)
+```
+- Adds the specified columns to the specified table
+- Takes a linked hashmap in the form of <String, String> where the first element is the column name and the second is the data type
+  - TEXT
+  - REAL
+  - INTEGER
+  - BLOB
  
-
 ### Data Retrieval
 ```java
 List<String> getRow(String tableName, String filterColumn, String filterValue);
