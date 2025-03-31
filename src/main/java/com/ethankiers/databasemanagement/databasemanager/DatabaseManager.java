@@ -446,8 +446,8 @@ public class DatabaseManager {
         }
     }
 
-    public static void main(String[] args) throws SQLException {
-        DatabaseManager db = new DatabaseManager("/home/user/test.db");
+    //public static void main(String[] args) throws SQLException {
+      //  DatabaseManager db = new DatabaseManager("/home/user/test.db");
         /*LinkedHashMap<String, String> columns = new LinkedHashMap<>();
         columns.put("id", "INTEGER PRIMARY KEY");
         columns.put("name", "TEXT");
@@ -559,4 +559,4 @@ public class DatabaseManager {
         }
 
     }*/
-}
+//}
