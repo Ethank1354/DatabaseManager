@@ -100,7 +100,7 @@ List<String> getRow(String tableName, String filterColumn, String filterValue);
 - Retrieves a full row matching the filter condition.
 
 ```java
-List<String> getFilteredValues(String tableName, String filterColumn, String filterValue, String[] columns);
+List<String> getFilteredValues(String tableName, String[] columns, String filterColumn, String filterValue);
 ```
 - Retrieves specific column values from rows matching the filter condition.
 
